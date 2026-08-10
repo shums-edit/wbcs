@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - UPSC Rule Keeper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Loading gate: covers everything until admin.js has checked
+         Firebase auth state. Hidden as soon as that check completes,
+         revealing either the login form or the panel below. -->
+    <div id="admin-loading-gate">
+        <div class="admin-loading-spinner"></div>
+    </div>
+
+    <!-- ── ADMIN LOGIN (v2.7.0) ─────────────────────────────────
+         Shown when not authenticated as admin. Previously admin.html
+         just redirected to index.html's flip-card admin face; that
+         face has been removed entirely — this is now the only way to
+         reach admin login, reachable only by navigating to admin.html
+         directly (no button linking to it anywhere on the student
+         page). -->
+    <div id="admin-login-section" class="admin-login-section" style="display:none;">
+        <div class="glass-card" style="max-width:420px; width:100%;">
+            <h2 class="login-face-heading">👑 Admin Login</h2>
+            <div class="input-group">
+                <label>Admin Email</label>
+                <input type="email" id="admin-login-email" placeholder="admin@yourdomain.com" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Admin Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="admin-login-password" placeholder="Enter password" autocomplete="new-password">
+                    <button type="button" class="toggle-password" data-target="admin-login-password" aria-label="Show password"></button>
+                </div>
+            </div>
+            <button type="button" id="admin-login-submit-btn" class="btn-primary" style="width:100%;">LOGIN AS ADMIN</button>
+            <div id="admin-login-message" class="message"></div>
+        </div>
+    </div>
+
+    <div class="admin-container" id="admin-panel-container" style="display:none;">
+
+        <header class="admin-header">
+            <h1>👑 UPSC RULE KEEPER - ADMIN PANEL</h1>
+            <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+                <span class="auto-logout-timer" id="auto-logout-timer"></span>
+                <button id="admin-logout-btn" class="logout-btn-top">🚪 LOGOUT</button>
+            </div>
+        </header>
+
+        <!-- Storage warning banner — hidden by default, shown by admin.js
+             only once a chained project's estimated usage crosses 95%. -->
+        <div id="storage-warning-banner" class="storage-warning-banner" style="display:none;"></div>
+
+        <!-- Admin Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="users">👥 USERS</button>
+            <button class="admin-tab-btn" data-tab="rules">📝 RULES</button>
+            <button class="admin-tab-btn" data-tab="recycle">🗑️ RECYCLE BIN</button>
+            <button class="admin-tab-btn" data-tab="settings">⚙️ SETTINGS</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="admin-tab-content active">
+            <div class="admin-section">
+                <h2>Pending Requests</h2>
+                <div id="pending-users-list"><p>⏳ Loading...</p></div>
+            </div>
+            <div class="admin-section">
+                <h2 style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    Active Students
+                    <button id="export-csv-btn" class="btn-small">📥 EXPORT CSV</button>
+                </h2>
+                <div id="active-users-list"><p>⏳ Loading...</p></div>
+            </div>
+        </div>
+
+        <!-- Rules Tab -->
+        <div id="rules-tab" class="admin-tab-content">
+            <div class="admin-section">
+                <button id="add-rule-btn" class="btn-primary" style="margin-bottom:15px; max-width:200px;">+ ADD NEW RULE</button>
+                <div id="rules-list-admin"><p>⏳ Loading...</p></div>
+            </div>
+        </div>
+
+        <!-- Recycle Bin Tab -->
+        <div id="recycle-tab" class="admin-tab-content">
+            <div class="admin-section">
+                <h2 style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
+                    <span>Deleted Students (Restore within 30 days)</span>
+                    <button id="delete-all-recycle-btn" class="btn-small btn-danger">🗑️ DELETE ALL</button>
+                </h2>
+                <div id="deleted-users-list"><p>Loading...</p></div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="admin-tab-content">
+            <div class="admin-section">
+                <h2>Admin Settings</h2>
+                <div class="input-group">
+                    <label>Current Admin Email</label>
+                    <input type="email" id="current-admin-email" readonly>
+                </div>
+                <div class="input-group">
+                    <label>New Admin Email</label>
+                    <input type="email" id="new-admin-email" placeholder="newadmin@email.com">
+                </div>
+                <button id="update-admin-email-btn" class="btn-primary" style="max-width:250px;">UPDATE ADMIN EMAIL</button>
+                <p class="warning">⚠️ After changing, login with new email. Old email loses admin access.</p>
+            </div>
+
+            <!-- ── FIREBASE CHAIN ─────────────────────────────── -->
+            <div class="admin-section">
+                <h2>🔥 Firebase Projects (Storage Chain)</h2>
+                <p style="font-size:13px; color:#666; margin-bottom:15px; line-height:1.5;">
+                    Rules are read from — and searched across — every project listed
+                    below, all merged together automatically. Add a new project
+                    before an existing one fills up; students and the chatbot won't
+                    notice anything changed. New rules are saved into whichever
+                    project below still has room.
+                </p>
+                <div id="firebase-chain-list"><p>⏳ Loading...</p></div>
+
+                <h3 style="margin-top:24px; margin-bottom:14px; font-size:15px;">Add New Firebase Project</h3>
+                <div class="input-group">
+                    <label>Project Label <span style="color:#999; font-size:12px;">(Optional — for your own reference)</span></label>
+                    <input type="text" id="new-fb-label" placeholder="e.g. Chemistry Rules DB">
+                </div>
+                <div class="input-group">
+                    <label>API Key</label>
+                    <input type="text" id="new-fb-apiKey" placeholder="AIzaSy...">
+                </div>
+                <div class="input-group">
+                    <label>Auth Domain</label>
+                    <input type="text" id="new-fb-authDomain" placeholder="project-id.firebaseapp.com">
+                </div>
+                <div class="input-group">
+                    <label>Project ID</label>
+                    <input type="text" id="new-fb-projectId" placeholder="project-id">
+                </div>
+                <div class="input-group">
+                    <label>Storage Bucket <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                    <input type="text" id="new-fb-storageBucket" placeholder="project-id.firebasestorage.app">
+                </div>
+                <div class="input-group">
+                    <label>Messaging Sender ID <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                    <input type="text" id="new-fb-messagingSenderId" placeholder="1234567890">
+                </div>
+                <div class="input-group">
+                    <label>App ID</label>
+                    <input type="text" id="new-fb-appId" placeholder="1:1234567890:web:abcdef">
+                </div>
+                <div class="input-group">
+                    <label>Confirm Your Admin Password <span style="color:#999; font-size:12px;">(sets up write access on this new project right away — not stored anywhere)</span></label>
+                    <div class="password-wrapper">
+                        <input type="password" id="new-fb-admin-password" placeholder="Your admin password" autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-target="new-fb-admin-password" aria-label="Show password"></button>
+                    </div>
+                </div>
+                <button id="add-fb-project-btn" class="btn-primary" style="max-width:260px;">TEST &amp; ADD PROJECT</button>
+                <div id="fb-chain-message" class="message" style="text-align:left; padding-left:0;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ADD / EDIT RULE MODAL ─────────────────────────── -->
+    <div id="rule-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" id="close-rule-modal">&times;</span>
+            <h3 id="modal-title" style="margin-bottom:20px;">Add New Rule</h3>
+            <input type="hidden" id="rule-doc-id">
+            <input type="hidden" id="rule-project-id">
+
+            <!-- Rule Name with formatting toolbar -->
+            <div class="input-group">
+                <label>Rule Name</label>
+                <div class="format-toolbar" data-target="rule-name">
+                    <button type="button" class="format-btn" data-cmd="bold"><b>B</b></button>
+                    <button type="button" class="format-btn" data-cmd="italic"><i>I</i></button>
+                    <button type="button" class="format-btn" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="format-btn color-trigger-btn" data-color-cmd="foreColor" title="Text color">
+                        <span class="color-btn-icon">A</span>
+                        <span class="color-btn-bar" data-color-bar="foreColor"></span>
+                    </button>
+                    <button type="button" class="format-btn color-trigger-btn highlight-trigger-btn" data-color-cmd="hiliteColor" title="Highlight color">
+                        <span class="color-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                        </span>
+                        <span class="color-btn-bar" data-color-bar="hiliteColor"></span>
+                    </button>
+                </div>
+                <div id="rule-name"
+                    contenteditable="true"
+                    class="rich-editor"
+                    style="border:1px solid #ddd; border-radius:8px; padding:12px; min-height:42px; font-size:14px; outline:none;"
+                    placeholder="e.g., Help as modal verb">
+                </div>
+            </div>
+
+            <!-- Category -->
+            <div class="input-group">
+                <label>Category</label>
+                <select id="rule-category">
+                    <!-- populated dynamically by categories.js -->
+                </select>
+                <div id="add-category-group" style="display:none; margin-top:10px;">
+                    <input type="text" id="new-category-input" placeholder="Type new category name (e.g. Chemistry)">
+                    <button type="button" id="add-category-btn" class="btn-small" style="margin-top:8px;">+ ADD CATEGORY</button>
+                </div>
+            </div>
+
+            <!-- Rule Date (optional) — used for the student dashboard's
+                 "Date — Newest/Oldest first" sort options. Independent
+                 of lastUpdated/createdAt, which just track when the
+                 admin edited the record — this is the actual class/
+                 topic date the admin sets manually. -->
+            <div class="input-group">
+                <label>Rule Date <span style="color:#999; font-size:12px;">(Optional — used for sorting by date on the student side, e.g. the class this was taught in)</span></label>
+                <input type="date" id="rule-date">
+            </div>
+
+            <!-- Chapter (optional) with formatting toolbar -->
+            <div class="input-group">
+                <label>Chapter Name <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                <div class="format-toolbar" data-target="rule-chapter">
+                    <button type="button" class="format-btn" data-cmd="bold"><b>B</b></button>
+                    <button type="button" class="format-btn" data-cmd="italic"><i>I</i></button>
+                    <button type="button" class="format-btn" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="format-btn color-trigger-btn" data-color-cmd="foreColor" title="Text color">
+                        <span class="color-btn-icon">A</span>
+                        <span class="color-btn-bar" data-color-bar="foreColor"></span>
+                    </button>
+                    <button type="button" class="format-btn color-trigger-btn highlight-trigger-btn" data-color-cmd="hiliteColor" title="Highlight color">
+                        <span class="color-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                        </span>
+                        <span class="color-btn-bar" data-color-bar="hiliteColor"></span>
+                    </button>
+                </div>
+                <div id="rule-chapter"
+                    contenteditable="true"
+                    class="rich-editor"
+                    style="border:1px solid #ddd; border-radius:8px; padding:12px; min-height:42px; font-size:14px; outline:none;"
+                    placeholder="e.g., Chapter 3 - Tenses">
+                </div>
+            </div>
+
+            <!-- Definition with formatting toolbar -->
+            <div class="input-group">
+                <label>Definition <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                <div class="format-toolbar" data-target="rule-definition">
+                    <button type="button" class="format-btn" data-cmd="bold"><b>B</b></button>
+                    <button type="button" class="format-btn" data-cmd="italic"><i>I</i></button>
+                    <button type="button" class="format-btn" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="format-btn color-trigger-btn" data-color-cmd="foreColor" title="Text color">
+                        <span class="color-btn-icon">A</span>
+                        <span class="color-btn-bar" data-color-bar="foreColor"></span>
+                    </button>
+                    <button type="button" class="format-btn color-trigger-btn highlight-trigger-btn" data-color-cmd="hiliteColor" title="Highlight color">
+                        <span class="color-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                        </span>
+                        <span class="color-btn-bar" data-color-bar="hiliteColor"></span>
+                    </button>
+                    <button type="button" class="format-btn insert-table-btn" data-target="rule-definition" title="Insert table">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+                    </button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-definition" data-table-dimension="row" title="Row options">Row ▾</button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-definition" data-table-dimension="col" title="Column options">Col ▾</button>
+                    <button type="button" class="format-btn bullet-point-btn" data-target="rule-definition" title="Bullet point">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+                    </button>
+                
+                </div>
+                <div id="rule-definition"
+                    contenteditable="true"
+                    class="rich-editor"
+                    style="border:1px solid #ddd; border-radius:8px; padding:12px; min-height:80px; font-size:14px; outline:none;"
+                    placeholder="Enter definition...">
+                </div>
+            </div>
+
+            <!-- Key Points with formatting toolbar -->
+            <div class="input-group">
+                <label>Key Points <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                <div class="format-toolbar" data-target="rule-points">
+                    <button type="button" class="format-btn" data-cmd="bold"><b>B</b></button>
+                    <button type="button" class="format-btn" data-cmd="italic"><i>I</i></button>
+                    <button type="button" class="format-btn" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="format-btn color-trigger-btn" data-color-cmd="foreColor" title="Text color">
+                        <span class="color-btn-icon">A</span>
+                        <span class="color-btn-bar" data-color-bar="foreColor"></span>
+                    </button>
+                    <button type="button" class="format-btn color-trigger-btn highlight-trigger-btn" data-color-cmd="hiliteColor" title="Highlight color">
+                        <span class="color-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                        </span>
+                        <span class="color-btn-bar" data-color-bar="hiliteColor"></span>
+                    </button>
+                    <button type="button" class="format-btn insert-table-btn" data-target="rule-points" title="Insert table">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+                    </button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-points" data-table-dimension="row" title="Row options">Row ▾</button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-points" data-table-dimension="col" title="Column options">Col ▾</button>
+                    <button type="button" class="format-btn bullet-point-btn" data-target="rule-points" title="Bullet point">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+                    </button>
+                
+                </div>
+                <div id="rule-points"
+                    contenteditable="true"
+                    class="rich-editor"
+                    style="border:1px solid #ddd; border-radius:8px; padding:12px; min-height:100px; font-size:14px; outline:none;"
+                    placeholder="• Point 1&#10;• Point 2">
+                </div>
+            </div>
+
+            <!-- Examples with formatting toolbar -->
+            <div class="input-group">
+                <label>Examples <span style="color:#999; font-size:12px;">(Optional)</span></label>
+                <div class="format-toolbar" data-target="rule-examples">
+                    <button type="button" class="format-btn" data-cmd="bold"><b>B</b></button>
+                    <button type="button" class="format-btn" data-cmd="italic"><i>I</i></button>
+                    <button type="button" class="format-btn" data-cmd="underline"><u>U</u></button>
+                    <button type="button" class="format-btn color-trigger-btn" data-color-cmd="foreColor" title="Text color">
+                        <span class="color-btn-icon">A</span>
+                        <span class="color-btn-bar" data-color-bar="foreColor"></span>
+                    </button>
+                    <button type="button" class="format-btn color-trigger-btn highlight-trigger-btn" data-color-cmd="hiliteColor" title="Highlight color">
+                        <span class="color-btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                        </span>
+                        <span class="color-btn-bar" data-color-bar="hiliteColor"></span>
+                    </button>
+                    <button type="button" class="format-btn insert-table-btn" data-target="rule-examples" title="Insert table">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+                    </button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-examples" data-table-dimension="row" title="Row options">Row ▾</button>
+                    <button type="button" class="format-btn table-action-btn" data-target="rule-examples" data-table-dimension="col" title="Column options">Col ▾</button>
+                    <button type="button" class="format-btn bullet-point-btn" data-target="rule-examples" title="Bullet point">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-xs"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="20" y2="18"></line><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+                    </button>
+                
+                </div>
+                <div id="rule-examples"
+                    contenteditable="true"
+                    class="rich-editor"
+                    style="border:1px solid #ddd; border-radius:8px; padding:12px; min-height:80px; font-size:14px; outline:none;"
+                    placeholder="Example 1&#10;Example 2">
+                </div>
+            </div>
+
+            <button id="save-rule-btn" class="btn-primary" style="margin-top:10px;">SAVE RULE</button>
+        </div>
+    </div>
+
+    <!-- ── LANGUAGE MODAL ────────────────────────────────── -->
+    <div id="language-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" id="close-lang-modal">&times;</span>
+            <h3 style="margin-bottom:15px;">Select Allowed Languages for Student</h3>
+            <input type="hidden" id="lang-user-id">
+            <div class="checkbox-group">
+                <label for="lang-en">
+                    <input type="checkbox" id="lang-en" name="allowedLanguages" value="en"> English
+                </label>
+                <label for="lang-bn">
+                    <input type="checkbox" id="lang-bn" name="allowedLanguages" value="bn"> বাংলা (Bengali)
+                </label>
+                <label for="lang-hi">
+                    <input type="checkbox" id="lang-hi" name="allowedLanguages" value="hi"> हिंदी (Hindi)
+                </label>
+                <label for="lang-ur">
+                    <input type="checkbox" id="lang-ur" name="allowedLanguages" value="ur"> اردو (Urdu)
+                </label>
+            </div>
+            <button id="save-languages-btn" class="btn-primary" style="margin-top:10px;">SAVE LANGUAGES</button>
+        </div>
+    </div>
+
+    <!-- ── COLOR POPOVER (v2.7.1 — Word-style redesign) ───────────
+         One shared popup, reused for every text-color/highlight-color
+         button across all 5 toolbars. A grid of small square swatches
+         (built-ins + anything picked via "More Colors…", which
+         auto-saves), plus a "More Colors…" link for anything not
+         already in the grid — no gradient option, no always-open
+         native picker sitting in the middle of the popup. -->
+    <div id="color-popover" class="color-popover" style="display:none;">
+        <div id="color-popover-grid" class="color-popover-grid"></div>
+        <button type="button" id="color-popover-more-btn" class="color-popover-more-btn">🎨 More Colors…</button>
+        <input type="color" id="color-popover-input" value="#e53e3e" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
+    </div>
+
+    <!-- ── TABLE ACTION POPOVER (v2.8.0) ───────────────────────────
+         Shared by every "Row ▾" / "Col ▾" button — replaces the
+         previous 4 separate +Row/-Row/+Col/-Col buttons. Opens with
+         Add/Remove for whichever dimension (row or column) was
+         clicked. -->
+    <div id="table-action-popover" class="mini-action-popover" style="display:none;">
+        <button type="button" id="table-action-add-btn" class="mini-action-option">➕ Add</button>
+        <button type="button" id="table-action-remove-btn" class="mini-action-option">➖ Remove</button>
+    </div>
+
+    <!-- ── LIST TYPE POPOVER (v2.8.0) ──────────────────────────────
+         Shared by every bullet-point button. Auto-increments based on
+         whatever list marker (if any) is immediately before the
+         cursor. -->
+    <div id="list-type-popover" class="mini-action-popover" style="display:none;">
+        <button type="button" class="mini-action-option list-type-option" data-list-type="bullet">• Bullet</button>
+        <button type="button" class="mini-action-option list-type-option" data-list-type="numbered">1. Numbered</button>
+        <button type="button" class="mini-action-option list-type-option" data-list-type="lettered">a. Lettered</button>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+
+    <script type="module">
+        import { getSavedColors, saveColor } from "./color-palette.js";
+
+        // ── COLOR POPOVER (v2.7.1 — Word-style redesign) ────────
+        // Small grid of built-in + saved square swatches (like Word's
+        // Standard Colors row), with a "More Colors…" link that opens
+        // the native picker for anything not already there. Picking a
+        // custom color via More Colors auto-saves it into the grid —
+        // no separate Save button, no gradient option, no always-open
+        // native picker taking up the whole popup.
+        const popover     = document.getElementById("color-popover");
+        const gridEl      = document.getElementById("color-popover-grid");
+        const moreBtn     = document.getElementById("color-popover-more-btn");
+        const colorInput  = document.getElementById("color-popover-input");
+
+        // A baseline set of standard colors, always shown first —
+        // same idea as Word's built-in "Standard Colors" row. Anything
+        // saved via "More Colors…" appears after these.
+        const BUILT_IN_COLORS = [
+            "#c00000", "#ff0000", "#ffc000", "#ffff00", "#92d050",
+            "#00b050", "#00b0f0", "#0070c0", "#002060", "#7030a0",
+            "#000000", "#808080", "#ffffff"
+        ];
+
+        let activeCmd  = null;  // "foreColor" or "hiliteColor" — which button opened this
+        let savedRange = null;  // selection to restore before applying a color
+        let lastTextColor      = "#e53e3e";
+        let lastHighlightColor = "#fff176";
+
+        function updateColorBars() {
+            document.querySelectorAll('[data-color-bar="foreColor"]').forEach(bar => {
+                bar.style.backgroundColor = lastTextColor;
+            });
+            document.querySelectorAll('[data-color-bar="hiliteColor"]').forEach(bar => {
+                bar.style.backgroundColor = lastHighlightColor;
+            });
+        }
+
+        function createSwatch(colorHex) {
+            const swatch = document.createElement("button");
+            swatch.type = "button";
+            swatch.className = "color-swatch";
+            swatch.style.backgroundColor = colorHex;
+            swatch.title = colorHex;
+            swatch.dataset.color = colorHex;
+            swatch.addEventListener("mousedown", (e) => e.preventDefault()); // keep selection alive
+            swatch.addEventListener("click", () => applyColor(colorHex));
+            return swatch;
+        }
+
+        async function renderGrid() {
+            const { textColors, highlightColors } = await getSavedColors();
+            const isHighlight = activeCmd === "hiliteColor";
+            const savedList = isHighlight ? highlightColors : textColors;
+
+            // Built-ins first, then anything saved that isn't already
+            // one of the built-ins (avoids duplicate swatches).
+            const combined = [...BUILT_IN_COLORS, ...savedList.filter(c => !BUILT_IN_COLORS.includes(c))];
+
+            gridEl.innerHTML = "";
+            combined.forEach(c => gridEl.appendChild(createSwatch(c)));
+        }
+
+        function applyColor(colorHex) {
+            if (!savedRange || !activeCmd) return;
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
+
+            // v2.9.1 fix: without this, execCommand('foreColor'/
+            // 'hiliteColor') wraps the selection in a legacy
+            // <font color="..."> tag by default — which the sanitizer
+            // correctly strips (it's not an allowed tag), silently
+            // discarding the color the instant a rule is saved. This
+            // forces <span style="color:..."> instead, which
+            // sanitizeRichText already explicitly supports. Toggled
+            // back off right after so it doesn't affect how bold/
+            // italic/underline get applied elsewhere (which rely on
+            // the default producing clean <b>/<i>/<u> tags, not
+            // span-based styles the sanitizer would also strip).
+            document.execCommand("styleWithCSS", false, true);
+            document.execCommand(activeCmd, false, colorHex);
+            document.execCommand("styleWithCSS", false, false);
+
+            if (activeCmd === "hiliteColor") lastHighlightColor = colorHex;
+            else lastTextColor = colorHex;
+            updateColorBars();
+        }
+
+        function openPopover(btn, cmd) {
+            const selection = window.getSelection();
+            savedRange = (selection.rangeCount > 0 && !selection.isCollapsed)
+                ? selection.getRangeAt(0).cloneRange()
+                : null;
+
+            if (!savedRange) {
+                alert("Select some text first, then choose a color.");
+                return;
+            }
+
+            activeCmd = cmd;
+
+            const rect = btn.getBoundingClientRect();
+            popover.style.top  = `${window.scrollY + rect.bottom + 6}px`;
+            popover.style.left = `${window.scrollX + rect.left}px`;
+            popover.style.display = "block";
+
+            renderGrid();
+        }
+
+        function closePopover() {
+            popover.style.display = "none";
+            activeCmd = null;
+        }
+
+        document.querySelectorAll(".color-trigger-btn").forEach(btn => {
+            btn.addEventListener("mousedown", (e) => e.preventDefault()); // don't lose editor focus/selection
+            btn.addEventListener("click", () => openPopover(btn, btn.dataset.colorCmd));
+        });
+
+        // "More Colors…" — opens the native OS color picker. Picking a
+        // color both applies it AND saves it into the grid right away,
+        // so it's there next time without a separate save step.
+        moreBtn.addEventListener("mousedown", (e) => e.preventDefault());
+        moreBtn.addEventListener("click", () => colorInput.click());
+
+        colorInput.addEventListener("input", () => applyColor(colorInput.value));
+        colorInput.addEventListener("change", async () => {
+            if (!activeCmd) return;
+            const type = activeCmd === "hiliteColor" ? "highlight" : "text";
+            try {
+                await saveColor(type, colorInput.value);
+                await renderGrid();
+            } catch (err) {
+                console.error("Failed to save color:", err);
+            }
+        });
+
+        // Close on outside click or Escape — but never on a click that
+        // opened/interacts with the popover itself.
+        document.addEventListener("mousedown", (e) => {
+            if (popover.style.display !== "block") return;
+            if (popover.contains(e.target)) return;
+            if (e.target.closest && e.target.closest(".color-trigger-btn")) return;
+            closePopover();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && popover.style.display === "block") closePopover();
+        });
+
+        updateColorBars();
+    </script>
+
+    <script>
+        // ── RICH TEXT FORMATTING TOOLBAR (bold/italic/underline) ──
+        document.querySelectorAll(".format-toolbar .format-btn[data-cmd]").forEach(btn => {
+            btn.addEventListener("mousedown", (e) => {
+                e.preventDefault(); // prevent losing focus from editor
+                document.execCommand(btn.dataset.cmd, false, null);
+            });
+        });
+
+        // Add focus-border styling to rich editors
+        document.querySelectorAll(".rich-editor").forEach(editor => {
+            editor.addEventListener("focus", () => {
+                editor.style.borderColor = "#667eea";
+                // v2.9.2 fix: by default, Chrome wraps each new line
+                // (from a plain Enter press) in its own invisible <div>
+                // rather than a simple line break. The sanitizer
+                // correctly doesn't allow <div> (not on the safe tag
+                // list), so stripping it also silently erased the break
+                // itself — text on either side got glued back together
+                // with no space at all. Forcing plain <br> here matches
+                // what the list-continuation feature already does
+                // correctly, so ordinary typed line breaks survive
+                // exactly as typed, same as list ones already did.
+                document.execCommand("defaultParagraphSeparator", false, "br");
+            });
+            editor.addEventListener("blur", () => {
+                editor.style.borderColor = "#ddd";
+            });
+
+            // Placeholder behavior
+            editor.addEventListener("input", () => {
+                if (editor.innerHTML.trim() === "" || editor.innerHTML === "<br>") {
+                    editor.innerHTML = "";
+                }
+            });
+        });
+
+        // ── BULLET / NUMBERED / LETTERED LIST BUTTON (v2.8.0) ────
+        // Clicking the bullet button opens a small menu: Bullet,
+        // Numbered, Lettered. Whichever is picked, auto-increments
+        // based on whatever list marker (if any) is immediately
+        // before the cursor — "3. " → next click gives "4. ", "b. " →
+        // next gives "c. ". Starts fresh at 1/a if nothing matches.
+        // This is plain-text markers, not a real structured list, so
+        // it works well for the normal type-a-point-click-button flow
+        // but won't intelligently renumber if you insert a point in
+        // the middle of an existing list later.
+        const listPopover = document.getElementById("list-type-popover");
+        let listPopoverTarget = null;
+        let listPopoverSavedRange = null;
+
+        function getPlainTextBeforeCursor(editor, focusNode, focusOffset) {
+            let text = "";
+            let found = false;
+            function walk(node) {
+                if (found) return;
+                if (node === focusNode) {
+                    if (node.nodeType === Node.TEXT_NODE) text += node.textContent.slice(0, focusOffset);
+                    found = true;
+                    return;
+                }
+                if (node.nodeType === Node.TEXT_NODE) {
+                    text += node.textContent;
+                } else if (node.nodeName === "BR") {
+                    text += "\n";
+                } else {
+                    for (const child of node.childNodes) {
+                        walk(child);
+                        if (found) return;
+                    }
+                }
+            }
+            walk(editor);
+            return text;
+        }
+
+        function getNextMarker(editor, type, focusNode, focusOffset) {
+            const textBefore = getPlainTextBeforeCursor(editor, focusNode, focusOffset);
+            const lines = textBefore.split("\n");
+            let lastNonEmpty = "";
+            for (let i = lines.length - 1; i >= 0; i--) {
+                if (lines[i].trim() !== "") { lastNonEmpty = lines[i].trim(); break; }
+            }
+
+            if (type === "numbered") {
+                const m = lastNonEmpty.match(/^(\d+)\.\s/);
+                return `${m ? parseInt(m[1], 10) + 1 : 1}. `;
+            }
+            if (type === "lettered") {
+                const m = lastNonEmpty.match(/^([a-z])\.\s/);
+                return m ? `${String.fromCharCode(m[1].charCodeAt(0) + 1)}. ` : "a. ";
+            }
+            return "• ";
+        }
+
+        document.querySelectorAll(".bullet-point-btn").forEach(btn => {
+            btn.addEventListener("mousedown", (e) => {
+                e.preventDefault(); // keep focus/selection in the editor
+                const editor = document.getElementById(btn.dataset.target);
+                const selection = window.getSelection();
+                listPopoverSavedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+                listPopoverTarget = editor;
+            });
+            btn.addEventListener("click", () => {
+                const rect = btn.getBoundingClientRect();
+                listPopover.style.top  = `${window.scrollY + rect.bottom + 6}px`;
+                listPopover.style.left = `${window.scrollX + rect.left}px`;
+                listPopover.style.display = "block";
+            });
+        });
+
+        document.querySelectorAll(".list-type-option").forEach(opt => {
+            opt.addEventListener("mousedown", (e) => e.preventDefault());
+            opt.addEventListener("click", () => {
+                if (!listPopoverTarget) return;
+                listPopoverTarget.focus();
+                const selection = window.getSelection();
+                if (listPopoverSavedRange) {
+                    selection.removeAllRanges();
+                    selection.addRange(listPopoverSavedRange);
+                }
+                const focusNode = selection.focusNode || listPopoverTarget;
+                const focusOffset = selection.focusOffset || 0;
+                const marker = getNextMarker(listPopoverTarget, opt.dataset.listType, focusNode, focusOffset);
+
+                // v2.9.4 fix: previously this checked only "is the
+                // WHOLE box empty" before deciding to prepend a break —
+                // so clicking the button right after you'd already
+                // pressed Enter yourself (landing on a fresh empty
+                // line) added a SECOND, unwanted break on top of yours,
+                // producing the visible blank-line gap. Now it checks
+                // whether the CURRENT LINE (wherever the cursor
+                // actually is) is empty, not the whole box — so it
+                // only adds a break when you're actually still partway
+                // through an existing line of text.
+                const editorEmpty = listPopoverTarget.innerHTML.trim() === "" || listPopoverTarget.innerHTML === "<br>";
+                let onFreshEmptyLine = false;
+                if (!editorEmpty) {
+                    const textBefore = getPlainTextBeforeCursor(listPopoverTarget, focusNode, focusOffset);
+                    const lines = textBefore.split("\n");
+                    onFreshEmptyLine = lines[lines.length - 1] === "";
+                }
+                const needsBreakFirst = !editorEmpty && !onFreshEmptyLine;
+
+                document.execCommand("insertHTML", false, needsBreakFirst ? `<br>${marker}` : marker);
+                listPopover.style.display = "none";
+            });
+        });
+
+        // ── TABLES ─────────────────────────────────────────────
+        // Insert: prompts for rows/columns, builds a plain <table> and
+        // inserts it at the cursor. Row ▾ / Col ▾ open a small Add/
+        // Remove popover that acts on whichever table contains the
+        // cursor — walks up from the selection to find the nearest
+        // <table>/<td> ancestor.
+        function getClosestAncestor(node, tagName) {
+            while (node && node.nodeName !== tagName) node = node.parentNode;
+            return node;
+        }
+
+        function buildTableHtml(rows, cols) {
+            let html = "<table>";
+            for (let r = 0; r < rows; r++) {
+                html += "<tr>";
+                for (let c = 0; c < cols; c++) html += "<td>&nbsp;</td>";
+                html += "</tr>";
+            }
+            html += "</table><br>";
+            return html;
+        }
+
+        document.querySelectorAll(".insert-table-btn").forEach(btn => {
+            btn.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                const editor = document.getElementById(btn.dataset.target);
+                editor.focus();
+
+                const rowsInput = prompt("How many rows?", "2");
+                if (rowsInput === null) return;
+                const colsInput = prompt("How many columns?", "2");
+                if (colsInput === null) return;
+
+                const rows = Math.min(20, Math.max(1, parseInt(rowsInput, 10) || 0));
+                const cols = Math.min(10, Math.max(1, parseInt(colsInput, 10) || 0));
+                if (!rows || !cols) {
+                    alert("Please enter valid numbers for rows and columns.");
+                    return;
+                }
+
+                document.execCommand("insertHTML", false, buildTableHtml(rows, cols));
+            });
+        });
+
+        // Extracted so both the popover's Add/Remove buttons can share
+        // this — previously this logic lived inline per one-of-four
+        // buttons; now it's one function called with the resolved
+        // action string ("add-row"/"remove-row"/"add-col"/"remove-col").
+        function executeTableAction(table, cell, action) {
+            if (action === "add-row") {
+                const colCount = table.rows[0] ? table.rows[0].cells.length : 1;
+                const currentRow = cell ? cell.parentElement : null;
+                const insertAt = currentRow ? currentRow.rowIndex + 1 : table.rows.length;
+                const newRow = table.insertRow(insertAt);
+                for (let i = 0; i < colCount; i++) newRow.insertCell(i).innerHTML = "&nbsp;";
+
+            } else if (action === "remove-row") {
+                if (table.rows.length <= 1) {
+                    if (confirm("This is the last row — removing it deletes the whole table. Continue?")) table.remove();
+                    return;
+                }
+                const row = cell ? cell.parentElement : table.rows[table.rows.length - 1];
+                row.remove();
+
+            } else if (action === "add-col") {
+                const colIndex = cell ? cell.cellIndex : (table.rows[0] ? table.rows[0].cells.length - 1 : 0);
+                Array.from(table.rows).forEach(row => {
+                    row.insertCell(colIndex + 1).innerHTML = "&nbsp;";
+                });
+
+            } else if (action === "remove-col") {
+                const colCount = table.rows[0] ? table.rows[0].cells.length : 0;
+                if (colCount <= 1) {
+                    if (confirm("This is the last column — removing it deletes the whole table. Continue?")) table.remove();
+                    return;
+                }
+                const colIndex = cell ? cell.cellIndex : colCount - 1;
+                Array.from(table.rows).forEach(row => {
+                    if (row.cells[colIndex]) row.deleteCell(colIndex);
+                });
+            }
+        }
+
+        const tablePopover = document.getElementById("table-action-popover");
+        let tablePopoverTarget = null;
+        let tablePopoverSavedRange = null;
+        let tablePopoverDimension = null; // "row" or "col"
+
+        document.querySelectorAll(".table-action-btn").forEach(btn => {
+            btn.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                const editor = document.getElementById(btn.dataset.target);
+                const selection = window.getSelection();
+                tablePopoverSavedRange = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+                tablePopoverTarget = editor;
+                tablePopoverDimension = btn.dataset.tableDimension;
+            });
+            btn.addEventListener("click", () => {
+                const rect = btn.getBoundingClientRect();
+                tablePopover.style.top  = `${window.scrollY + rect.bottom + 6}px`;
+                tablePopover.style.left = `${window.scrollX + rect.left}px`;
+                tablePopover.style.display = "block";
+            });
+        });
+
+        function performTableAction(addOrRemove) {
+            tablePopover.style.display = "none";
+            if (!tablePopoverTarget || !tablePopoverSavedRange) {
+                alert("Click inside a table first.");
+                return;
+            }
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(tablePopoverSavedRange);
+
+            const anchorNode = tablePopoverSavedRange.startContainer;
+            const table = getClosestAncestor(anchorNode, "TABLE");
+            if (!table || !tablePopoverTarget.contains(table)) {
+                alert("Click inside a table first, then use this button.");
+                return;
+            }
+            const cell = getClosestAncestor(anchorNode, "TD") || getClosestAncestor(anchorNode, "TH");
+            const action = `${addOrRemove}-${tablePopoverDimension}`; // "add-row" / "remove-col" / etc.
+            executeTableAction(table, cell, action);
+        }
+
+        document.getElementById("table-action-add-btn").addEventListener("mousedown", (e) => e.preventDefault());
+        document.getElementById("table-action-add-btn").addEventListener("click", () => performTableAction("add"));
+        document.getElementById("table-action-remove-btn").addEventListener("mousedown", (e) => e.preventDefault());
+        document.getElementById("table-action-remove-btn").addEventListener("click", () => performTableAction("remove"));
+
+        // Close the table/list popovers on outside click or Escape —
+        // the color popover has its own equivalent handling in its own
+        // module script.
+        document.addEventListener("mousedown", (e) => {
+            [tablePopover, listPopover].forEach(pop => {
+                if (pop.style.display !== "block") return;
+                if (pop.contains(e.target)) return;
+                if (e.target.closest && (e.target.closest(".table-action-btn") || e.target.closest(".bullet-point-btn"))) return;
+                pop.style.display = "none";
+            });
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            [tablePopover, listPopover].forEach(pop => { pop.style.display = "none"; });
+        });
+
+        // ── ENTER KEY CONTINUES THE CURRENT LIST (v2.9.0) ────────
+        // Previously the only way to get the next marker was clicking
+        // the bullet button and reopening the menu every single time —
+        // real lists (in Word, Google Docs, etc.) continue automatically
+        // when you just press Enter. This detects whether the CURRENT
+        // line (wherever the cursor is) starts with a list marker
+        // (•, "3. ", "b. ") by pattern, not by remembering which button
+        // was clicked — so it works even if the line was typed by hand.
+        // Pressing Enter on a line that already has content after the
+        // marker continues the list with the next marker. Pressing
+        // Enter again on an EMPTY marker (nothing typed after it) exits
+        // the list — removes that empty marker and just starts a plain
+        // new line, same as Word.
+        function detectCurrentLineMarker(editor, focusNode, focusOffset) {
+            const textBefore = getPlainTextBeforeCursor(editor, focusNode, focusOffset);
+            const lines = textBefore.split("\n");
+            const currentLine = lines[lines.length - 1];
+
+            let m = currentLine.match(/^(•\s)(.*)$/);
+            if (m) return { type: "bullet", markerText: m[1], content: m[2] };
+
+            m = currentLine.match(/^(\d+)(\.\s)(.*)$/);
+            if (m) return { type: "numbered", markerText: m[1] + m[2], content: m[3], num: parseInt(m[1], 10) };
+
+            m = currentLine.match(/^([a-z])(\.\s)(.*)$/);
+            if (m) return { type: "lettered", markerText: m[1] + m[2], content: m[3], letter: m[1] };
+
+            return null;
+        }
+
+        // v2.9.3: handles Enter for both events below — factored out so
+        // it's identical regardless of which one actually catches a
+        // given keypress.
+        function handleEnterPress(editor) {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+
+            const info = detectCurrentLineMarker(editor, selection.focusNode, selection.focusOffset);
+
+            if (!info) {
+                document.execCommand("insertHTML", false, "<br>");
+                return;
+            }
+
+            if (info.content.trim() === "") {
+                // Empty marker — exit the list. The line break that
+                // created this marker line already exists (from
+                // whatever inserted the marker in the first place) —
+                // deleting just the marker text leaves a genuinely
+                // empty line, ready for a normal Enter to add a real
+                // gap next. (v2.9.5 fix: this used to ALSO insert a
+                // new <br> here, on top of the one already there —
+                // a redundant, invisible extra line break added every
+                // single time a list was exited, which is what was
+                // throwing off the next Enter press.)
+                for (let i = 0; i < info.markerText.length; i++) {
+                    document.execCommand("delete", false, null);
+                }
+                return;
+            }
+
+            let nextMarker;
+            if (info.type === "numbered") nextMarker = `${info.num + 1}. `;
+            else if (info.type === "lettered") nextMarker = `${String.fromCharCode(info.letter.charCodeAt(0) + 1)}. `;
+            else nextMarker = "• ";
+
+            document.execCommand("insertHTML", false, `<br>${nextMarker}`);
+        }
+
+        document.querySelectorAll(".rich-editor").forEach(editor => {
+            // v2.9.3 fix: ALWAYS prevent the browser's own Enter
+            // handling now, not just on list lines — the previous
+            // version let plain Enter presses fall through to the
+            // browser's default, which doesn't reliably respect the
+            // defaultParagraphSeparator setting (especially on mobile)
+            // and can still create a <div> the sanitizer then strips,
+            // silently eating the break.
+            //
+            // TWO listeners on purpose: keydown works reliably for a
+            // physical keyboard, but many mobile virtual keyboards
+            // mediate Enter through their IME without firing a proper
+            // keydown carrying key:"Enter" at all — beforeinput fires
+            // reliably even through that IME layer, so it's the
+            // fallback for exactly the case keydown can't be trusted
+            // on. These never double-fire: preventDefault() on keydown
+            // stops the browser from ever generating the corresponding
+            // beforeinput for that same keystroke, so on a normal
+            // desktop keyboard only the keydown path runs; on mobile,
+            // where keydown often doesn't carry usable info, only
+            // beforeinput ends up handling it.
+            editor.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter" || e.shiftKey) return;
+                e.preventDefault();
+                handleEnterPress(editor);
+            });
+            editor.addEventListener("beforeinput", (e) => {
+                if (e.inputType !== "insertParagraph" && e.inputType !== "insertLineBreak") return;
+                e.preventDefault();
+                handleEnterPress(editor);
+            });
+        });
+
+        // ── CTRL+A SCOPED TO THE CURRENT TABLE CELL ─────────────
+        // Ctrl+A inside a contenteditable field normally selects the
+        // ENTIRE field — inside a table, that meant Ctrl+A then
+        // Delete wiped out everything in the field, not just the
+        // cell you were editing. When the cursor is inside a table
+        // cell, this selects only that cell's contents instead, so
+        // Delete/Backspace only clears that one cell. Outside a
+        // table, Ctrl+A behaves exactly as before (selects the whole
+        // field).
+        document.querySelectorAll(".rich-editor").forEach(editor => {
+            editor.addEventListener("keydown", (e) => {
+                const isSelectAll = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a";
+                if (!isSelectAll) return;
+
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+
+                const cell = getClosestAncestor(selection.anchorNode, "TD") || getClosestAncestor(selection.anchorNode, "TH");
+                if (!cell || !editor.contains(cell)) return; // not in a table — let the default whole-field Ctrl+A happen
+
+                e.preventDefault();
+                const range = document.createRange();
+                range.selectNodeContents(cell);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            });
+        });
+
+        // ── PASSWORD SHOW/HIDE (professional SVG icon toggle) ───
+        // Same icon pattern as index.html's login fields — admin.html
+        // never needed this before (no password fields existed here
+        // until the "confirm your admin password" field for adding a
+        // chained Firebase project).
+        const EYE_OPEN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-sm"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const EYE_OFF_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-sm"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        document.querySelectorAll(".toggle-password").forEach(btn => {
+            btn.innerHTML = EYE_OPEN_SVG;
+            btn.addEventListener("click", () => {
+                const input = document.getElementById(btn.dataset.target);
+                if (input.type === "password") {
+                    input.type = "text";
+                    btn.innerHTML = EYE_OFF_SVG;
+                    btn.setAttribute("aria-label", "Hide password");
+                } else {
+                    input.type = "password";
+                    btn.innerHTML = EYE_OPEN_SVG;
+                    btn.setAttribute("aria-label", "Show password");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1797 @@
+/* ── TYPOGRAPHY (v2.3.0) ─────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    min-height: 100vh;
+}
+
+/* ── LOGIN PAGE ─────────────────────────────────────────── */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Background image — scoped to the login/flip-card page only (index.html).
+   reset-password.html still uses the plain gradient body{} above, since
+   it wasn't part of this redesign. */
+body.login-page {
+    background: linear-gradient(135deg, rgba(45,74,115,0.55) 0%, rgba(22,36,59,0.55) 100%),
+                url("background.jpeg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* ── FLIP CARD ──────────────────────────────────────────── */
+.login-wrapper {
+    width: 100%;
+    max-width: 450px;
+}
+
+.app-title {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #fff;
+    font-size: clamp(18px, 5vw, 26px);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+
+.flip-card {
+    perspective: 1600px;
+    width: 100%;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.flip-card-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.flip-card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateY(180deg);
+}
+
+/* ── CARD (v2.3.0 — was a heavy blur/glassmorphism effect,
+   replaced with a cleaner solid card for a more standard,
+   professional look) ─────────────────────────────────────── */
+.glass-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid #c9a227;
+    border-radius: 14px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.25);
+    color: #1e293b;
+}
+
+.glass-card h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #1e293b;
+    font-size: clamp(18px, 5vw, 26px);
+}
+
+/* "Student Login" / "Admin Login" — makes it unambiguous which face of
+   the flip card you're looking at, since the app title above the card
+   doesn't change between the two. */
+.login-face-heading {
+    text-align: center;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1e293b;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.glass-card .input-group label {
+    color: #475569;
+}
+
+.glass-card .input-group input,
+.glass-card .input-group select {
+    background: #f8fafc;
+    color: #1e293b;
+    border-color: #e2e8f0;
+}
+
+.glass-card .toggle-password {
+    color: #555;
+}
+
+.glass-card .btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+.glass-card .btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.glass-card .forgot-password a {
+    color: #2d4a73;
+}
+
+.glass-card .password-requirements {
+    color: #64748b;
+}
+
+.glass-card .confirm-password-msg,
+.glass-card #confirm-password-msg {
+    color: #475569;
+}
+
+/* "Admin Login" / "User Login" flip-trigger buttons */
+.switch-side {
+    text-align: center;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.switch-side-btn {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.2s;
+}
+
+.switch-side-btn:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.login-page .message {
+    color: #fff;
+}
+
+.login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.login-card h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: clamp(18px, 5vw, 26px);
+}
+
+.tab-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #666;
+}
+
+.tab-btn.active {
+    color: #2d4a73;
+    border-bottom: 3px solid #2d4a73;
+    font-weight: bold;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
+    font-family: inherit;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    outline: none;
+    border-color: #2d4a73;
+}
+
+/* Password wrapper for show/hide button */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    flex: 1;
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+    padding: 0;
+    line-height: 1;
+}
+
+.toggle-password:hover {
+    color: #2d4a73;
+}
+
+/* Password strength meter */
+.password-strength {
+    margin-top: 8px;
+    display: none;
+}
+
+.strength-bar {
+    height: 5px;
+    border-radius: 3px;
+    background: #eee;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.3s, background 0.3s;
+}
+
+.strength-fill.weak   { width: 33%; background: #ff4757; }
+.strength-fill.medium { width: 66%; background: #ffa502; }
+.strength-fill.strong { width: 100%; background: #2ed573; }
+
+.strength-text {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.strength-text.weak   { color: #ff4757; }
+.strength-text.medium { color: #ffa502; }
+.strength-text.strong { color: #2ed573; }
+
+/* Password requirements list */
+.password-requirements {
+    list-style: none;
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.password-requirements li::before {
+    content: "✗ ";
+    color: #ff4757;
+}
+
+.password-requirements li.met::before {
+    content: "✓ ";
+    color: #2ed573;
+}
+
+.password-requirements li.met {
+    color: #2ed573;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 12px;
+    background: #f0f0f0;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.forgot-password {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.forgot-password a {
+    color: #2d4a73;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* ── DASHBOARD LAYOUT ───────────────────────────────────── */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+/* Hamburger button — hidden on desktop */
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1050;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+.sidebar {
+    width: 280px;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1100;
+    transition: transform 0.3s ease;
+}
+
+.profile-section {
+    padding: 30px 20px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    margin: 0 auto 15px;
+}
+
+.profile-section h3 {
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 16px;
+    word-break: break-word;
+}
+
+.profile-section p {
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 15px;
+    word-break: break-all;
+}
+
+.student-details {
+    text-align: left;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.detail-item {
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #333;
+    display: inline-block;
+    width: 60px;
+}
+
+.detail-item span:last-child {
+    color: #666;
+}
+
+.logout-btn {
+    margin: 20px;
+    padding: 12px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.logout-btn:hover {
+    background: #ff3838;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 20px;
+    min-width: 0;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dashboard-header h1 {
+    font-size: clamp(14px, 3vw, 22px);
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* v3.0.0: multi-open cards toggle switch, sits next to the dark-mode
+   button in the dashboard header. */
+.multi-expand-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #555;
+    user-select: none;
+}
+
+.multi-expand-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.multi-expand-slider {
+    width: 34px;
+    height: 18px;
+    background: #d1d5db;
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.multi-expand-slider::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+}
+
+.multi-expand-toggle input:checked + .multi-expand-slider {
+    background: #2d4a73;
+}
+
+.multi-expand-toggle input:checked + .multi-expand-slider::before {
+    transform: translateX(16px);
+}
+
+.multi-expand-label {
+    white-space: nowrap;
+}
+
+body.dark-mode .multi-expand-toggle {
+    color: #ccc;
+}
+
+body.dark-mode .multi-expand-slider {
+    background: #475569;
+}
+
+/* .icon-btn styling now lives in the "PROFESSIONAL ICON BUTTONS"
+   block near the end of this file (v2.1.0) — the old emoji-sized
+   version (padding: 8px 12px; font-size: 18px; no border) was removed
+   from here to avoid two rules fighting over sizing. */
+
+.language-select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    max-width: 140px;
+}
+
+.search-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+#search-input {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+#category-filter,
+#chapter-filter,
+#sort-select {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.content-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    flex-wrap: wrap;
+}
+
+.rules-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.rule-card {
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: box-shadow 0.2s;
+}
+
+.rule-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.rule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* v3.0.0: collapsible rule cards — the header row (title/chapter/
+   category) is always visible and clickable; the body (definition/
+   key points/examples) toggles open/closed on click. */
+.rule-header-clickable {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+    padding: 4px;
+    margin: -4px -4px 6px -4px;
+}
+
+.rule-header-clickable:hover {
+    background: rgba(45, 74, 115, 0.05);
+}
+
+.rule-expand-chevron {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-left: 2px;
+    user-select: none;
+    line-height: 1;
+}
+
+.rule-card-body {
+    animation: rule-body-fade-in 0.15s ease;
+}
+
+@keyframes rule-body-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+body.dark-mode .rule-header-clickable:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.rule-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.rule-chapter {
+    font-size: 13px;
+    color: #2d4a73;
+    margin-bottom: 6px;
+    font-style: italic;
+}
+
+.rule-id {
+    font-size: 12px;
+    color: #999;
+    margin-left: 10px;
+}
+
+.bookmark-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #ccc;
+    flex-shrink: 0;
+}
+
+.bookmark-btn.active {
+    color: #ffc107;
+}
+
+.copy-btn {
+    background: #2d4a73;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* ── RICH TEXT FORMATTING TOOLBAR ───────────────────────── */
+.format-toolbar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    flex-wrap: wrap;
+}
+
+.format-btn {
+    padding: 4px 10px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+    line-height: 1.4;
+}
+
+.format-btn:hover {
+    background: #2d4a73;
+    color: white;
+    border-color: #2d4a73;
+}
+
+.format-btn b { font-weight: bold; }
+.format-btn i { font-style: italic; }
+.format-btn u { text-decoration: underline; }
+
+/* Rich text display in rule cards */
+.rule-definition,
+.rule-points,
+.rule-examples {
+    margin-top: 8px;
+    line-height: 1.9;
+    font-size: 14px;
+    color: #444;
+    word-break: break-word;
+    white-space: pre-wrap; /* v2.9.2: preserves extra spaces/blank lines exactly as typed, still wraps normally at container width */
+}
+
+/* v2.9.0: extra breathing room for bullet/numbered/lettered lines
+   specifically — a long point that wraps onto a second visual line
+   was hard to tell apart from the start of the next point at the
+   previous 1.7 line-height. Also applied to the editor itself so it
+   looks the same while typing as it will once saved. */
+.rich-editor {
+    line-height: 1.9;
+    white-space: pre-wrap;
+}
+
+/* ── CHATBOT ─────────────────────────────────────────────── */
+.chatbot-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    color: white;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+    z-index: 999;
+}
+
+.chatbot-toggle:hover {
+    transform: scale(1.05);
+}
+
+.chatbot-window {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.chatbot-header {
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    color: white;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.bot-message, .user-message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 80%;
+    word-break: break-word;
+}
+
+.bot-message {
+    background: #f0f0f0;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+.user-message {
+    background: #2d4a73;
+    color: white;
+    margin-left: auto;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #eee;
+    gap: 5px;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 0;
+}
+
+.voice-chat-btn, #chat-send-btn {
+    padding: 8px 12px;
+    background: #2d4a73;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* ── DARK MODE ───────────────────────────────────────────── */
+body.dark-mode {
+    background: #1a1a2e;
+}
+
+body.dark-mode .login-card,
+body.dark-mode .sidebar,
+body.dark-mode .rules-container,
+body.dark-mode .dashboard-header,
+body.dark-mode .chatbot-window,
+body.dark-mode .admin-section,
+body.dark-mode .admin-header,
+body.dark-mode .admin-tabs,
+body.dark-mode .modal-content {
+    background: #16213e;
+    color: #eee;
+}
+
+body.dark-mode .rule-card {
+    background: #0f3460;
+    border-color: #1a1a2e;
+}
+
+body.dark-mode .input-group input,
+body.dark-mode .input-group select,
+body.dark-mode .input-group textarea,
+body.dark-mode #search-input,
+body.dark-mode #category-filter,
+body.dark-mode #chapter-filter,
+body.dark-mode #sort-select,
+body.dark-mode #chat-input {
+    background: #0f3460;
+    color: #eee;
+    border-color: #1a1a2e;
+}
+
+body.dark-mode .format-btn {
+    background: #0f3460;
+    color: #eee;
+    border-color: #1a1a2e;
+}
+
+body.dark-mode .tab-btn {
+    color: #aaa;
+}
+
+body.dark-mode .rule-title { color: #eee; }
+body.dark-mode .rule-definition,
+body.dark-mode .rule-points,
+body.dark-mode .rule-examples { color: #ccc; }
+
+body.dark-mode .input-group label { color: #ccc; }
+body.dark-mode .detail-label { color: #ccc; }
+body.dark-mode .detail-item span:last-child { color: #ccc; }
+body.dark-mode .profile-section h3 { color: #eee; }
+
+/* The actual page canvas behind the sidebar/header/cards — previously
+   this kept its light-gray background in dark mode too, since only
+   the individual white cards sitting ON TOP of it were re-skinned.
+   That's why dark mode looked "basically the same" before: the
+   biggest visible surface on the page was never touched. */
+body.dark-mode .dashboard-container {
+    background: #1a1a2e;
+}
+
+/* ── ADMIN PANEL ─────────────────────────────────────────── */
+.admin-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.admin-header h1 {
+    font-size: clamp(14px, 3vw, 22px);
+}
+
+.logout-btn-top {
+    padding: 10px 20px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.logout-btn-top:hover { background: #ff3838; }
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-tab-btn {
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.admin-tab-btn.active {
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    color: white;
+}
+
+.admin-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.user-table, .rule-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+}
+
+.user-table th, .user-table td,
+.rule-table th, .rule-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    background: #2d4a73;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.warning {
+    color: #ff4757;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+/* Auto-logout countdown display */
+.auto-logout-timer {
+    font-size: 12px;
+    color: #ff4757;
+    text-align: right;
+    padding: 5px 0;
+}
+
+/* Student dashboard sidebar context — centered above the logout
+   button instead of right-aligned (which only made sense in the
+   admin header's flex row). */
+.sidebar .auto-logout-timer {
+    text-align: center;
+    display: block;
+    margin: 0 20px;
+}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* Checkbox group in language modal */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Admin tab content */
+.admin-tab-content { display: none; }
+.admin-tab-content.active { display: block; }
+
+/* ── SPLASH SCREEN ───────────────────────────────────────── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── ADMIN LOADING GATE ──────────────────────────────────── */
+/* Shown by default in admin.html; admin.js hides it as soon as it has
+   checked Firebase auth state, revealing either the login form or the
+   panel. Prevents a flash of either one before that check completes. */
+#admin-loading-gate {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.admin-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ── ADMIN LOGIN SECTION (v2.7.0) ────────────────────────────
+   Full-page centered login card, shown in place of the panel when
+   not authenticated — admin.html is now self-contained: the only way
+   to reach admin login, with no button pointing to it anywhere on
+   the student-facing page. */
+.admin-login-section {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    padding: 20px;
+}
+
+#splash-screen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #2d4a73 0%, #16243b 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: opacity 0.6s ease;
+    padding: 20px;
+    text-align: center;
+}
+
+#splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* Login page */
+    .login-card {
+        padding: 25px 20px;
+    }
+
+    .glass-card {
+        padding: 25px 20px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    /* Show hamburger, hide sidebar by default */
+    .hamburger-btn {
+        display: flex;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Main content takes full width */
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+        padding-top: 70px; /* space for hamburger */
+    }
+
+    .dashboard-header h1 {
+        font-size: 16px;
+    }
+
+    /* Search section stacks vertically */
+    .search-section {
+        flex-direction: column;
+    }
+
+    #search-input, #category-filter, #chapter-filter, #sort-select {
+        width: 100%;
+    }
+
+    /* Content tabs scroll horizontally */
+    .content-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 5px;
+    }
+
+    .content-tabs .tab-btn {
+        white-space: nowrap;
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    /* Rule cards */
+    .rule-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rule-title {
+        font-size: 16px;
+    }
+
+    /* Chatbot full width on mobile */
+    .chatbot-window {
+        width: calc(100vw - 30px);
+        right: 15px;
+        bottom: 85px;
+        height: 60vh;
+    }
+
+    /* Admin panel */
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 5px;
+    }
+
+    .admin-tab-btn {
+        white-space: nowrap;
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .admin-section {
+        padding: 15px;
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .format-toolbar {
+        gap: 4px;
+    }
+
+    .format-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 20px 15px;
+    }
+
+    .login-card h1 {
+        font-size: 18px;
+    }
+
+    .glass-card h1 {
+        font-size: 18px;
+    }
+
+    .tab-btn {
+        font-size: 13px;
+        padding: 10px 6px;
+    }
+
+    .avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+
+    .chatbot-toggle {
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+        bottom: 15px;
+        right: 15px;
+    }
+}
+
+/* ============================================================
+   ADDITIONS — v2.1.0 (2026-08-08)
+   Professional icon buttons (dark mode / mic / password toggle),
+   forgot-password flip effect, rich-text color toolbar buttons,
+   dynamic category "Other…" input, Firebase chain settings UI,
+   and the storage warning banner.
+   ============================================================ */
+
+/* ── PROFESSIONAL ICON BUTTONS ───────────────────────────────
+   Replaces the old emoji-in-a-button look (🙈/👁️/🌙/🎤) with clean
+   line-art SVG icons in a neutral, understated button — used for the
+   password show/hide toggle, dashboard dark-mode toggle, and the
+   voice-search / chatbot-voice mic buttons. */
+.icon-svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.icon-svg-sm { width: 18px; height: 18px; }
+.icon-svg-xs { width: 15px; height: 15px; }
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4f4f8;
+    color: #555;
+    border: 1px solid #e4e4ec;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background: #ececf5;
+    color: #2d4a73;
+    border-color: #d8d8ea;
+}
+
+.icon-btn.listening {
+    background: #fdeaea;
+    color: #ff4757;
+    border-color: #ffb3ba;
+    animation: pulse-listening 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-listening {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.35); }
+    50%      { box-shadow: 0 0 0 6px rgba(255, 71, 87, 0); }
+}
+
+body.dark-mode .icon-btn {
+    background: #0f3460;
+    color: #ccc;
+    border-color: #1a1a2e;
+}
+body.dark-mode .icon-btn:hover {
+    background: #14407a;
+    color: #fff;
+}
+
+/* Password show/hide toggle — was an emoji swap, now an SVG icon
+   button sitting inline inside the password field. */
+.toggle-password {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    color: #888;
+    transition: background 0.2s, color 0.2s;
+}
+
+.toggle-password:hover {
+    background: rgba(45, 74, 115, 0.12);
+    color: #2d4a73;
+}
+
+.glass-card .toggle-password {
+    color: #555;
+}
+.glass-card .toggle-password:hover {
+    background: rgba(45, 74, 115, 0.15);
+    color: #2d4a73;
+}
+
+.voice-chat-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.voice-chat-btn.listening {
+    background: #ff4757;
+    animation: pulse-listening 1.4s ease-in-out infinite;
+}
+
+/* ── FORGOT PASSWORD — LOGIN CARD ⇄ RESET-PASSWORD CARD ──────
+   NOTE (v2.1.1 fix): the first version of this nested a second
+   perspective/preserve-3d flip OUTSIDE the existing student/admin
+   .flip-card (which already has its own perspective/preserve-3d).
+   Nested 3D transform contexts like that are unreliable across real
+   browsers — mobile in particular will often just stack both faces
+   in normal flow instead of overlapping/hiding one, which is exactly
+   the bug this replaces. This version avoids the problem entirely:
+   the login card and the reset card are plain SIBLING elements,
+   toggled with display:none/block (so only one is ever actually in
+   the page at a time — no 3D rendering ambiguity possible), with a
+   one-shot rotateY "flip-in" animation on whichever one appears, for
+   the same visual effect. */
+.reset-card {
+    display: none;
+}
+
+.reset-card.visible {
+    display: block;
+    animation: flip-in 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+#flip-card-wrap.visible {
+    animation: flip-in 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+@keyframes flip-in {
+    from { transform: rotateY(90deg); opacity: 0; }
+    to   { transform: rotateY(0deg);  opacity: 1; }
+}
+
+/* ── RICH-TEXT COLOR / HIGHLIGHT BUTTONS ─────────────────────
+   Sit in the same toolbar row as B/I/U. The hidden <input
+   type="color"> that each one triggers is visually removed from
+   flow — it's only there to open the browser's native color picker. */
+.color-input-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.color-trigger-btn {
+    font-weight: 700;
+    font-family: Georgia, serif;
+    position: relative;
+}
+
+.color-trigger-btn[data-color-cmd="foreColor"]::after {
+    content: "";
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 2px;
+    background: #e53e3e;
+}
+
+.highlight-trigger-btn {
+    color: #333;
+}
+
+/* ── DYNAMIC CATEGORY "OTHER…" INPUT ─────────────────────────
+   #add-category-group reuses the existing .input-group input styles
+   automatically — this just tightens the spacing/layout around it. */
+#add-category-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: #f8f8fc;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
+
+#add-category-group #add-category-btn {
+    align-self: flex-start;
+}
+
+/* ── STORAGE WARNING BANNER ──────────────────────────────────
+   Hidden by default; admin.js shows it only once a chained project's
+   estimated usage crosses the 95% threshold. */
+.storage-warning-banner {
+    background: #fff4e5;
+    border: 1px solid #ffc978;
+    color: #8a5a00;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    align-items: center;
+    gap: 10px;
+}
+
+body.dark-mode .storage-warning-banner {
+    background: #3a2c10;
+    border-color: #6b4e12;
+    color: #ffcf7a;
+}
+
+/* ── FIREBASE CHAIN USAGE BAR ────────────────────────────────── */
+.usage-bar {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.usage-bar-fill {
+    height: 100%;
+    background: #2ed573;
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+.usage-bar-fill.warn   { background: #ffa502; }
+.usage-bar-fill.danger { background: #ff4757; }
+
+.btn-danger { background: #ff4757 !important; }
+
+/* ── COLOR TOOLBAR BUTTONS (v2.7.1) ──────────────────────────
+   "A" / highlighter icon with a colored underline bar showing the
+   current color — matches the familiar Word-style text-color /
+   highlight-color button look. */
+.color-trigger-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px !important;
+}
+
+.color-btn-icon {
+    font-weight: 700;
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+.highlight-trigger-btn .color-btn-icon {
+    display: flex;
+}
+
+.color-btn-bar {
+    display: block;
+    width: 16px;
+    height: 3px;
+    border-radius: 1px;
+    background: #e53e3e; /* overwritten by JS to reflect the actual last-used color */
+}
+
+/* ── COLOR POPOVER (v2.7.1 — Word-style redesign) ────────────
+   A grid of small square swatches (built-in + saved), a "More
+   Colors…" link for anything else — no gradient option, no
+   always-open native picker taking over the popup. */
+.color-popover {
+    position: absolute;
+    z-index: 3000;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+    padding: 10px;
+    width: 176px;
+}
+
+.color-popover-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.color-popover-more-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    padding: 8px 2px 2px;
+    font-size: 13px;
+    color: #2d4a73;
+    cursor: pointer;
+}
+
+.color-popover-more-btn:hover {
+    color: #16243b;
+    text-decoration: underline;
+}
+
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s;
+}
+
+.color-swatch:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px rgba(45, 74, 115, 0.3);
+}
+
+/* ── MINI ACTION POPOVER (v2.8.0) ────────────────────────────
+   Shared by the table Row ▾ / Col ▾ buttons (Add/Remove) and the
+   bullet-point button (Bullet/Numbered/Lettered) — a small vertical
+   list of text options, simpler than the color grid popover. */
+.mini-action-popover {
+    position: absolute;
+    z-index: 3000;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+    padding: 4px;
+    min-width: 130px;
+}
+
+.mini-action-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+}
+
+.mini-action-option:hover {
+    background: #f1f5f9;
+    color: #16243b;
+}
+
+/* ── TABLES INSIDE RULE CONTENT (v2.6.0) ─────────────────────
+   Applies both in the admin's rich-editor (while typing) and in the
+   student-facing rendered rule cards, chatbot messages, and PDF
+   export — anywhere sanitizeRichText's output gets displayed. */
+.rich-editor table,
+.rule-definition table,
+.rule-points table,
+.rule-examples table,
+.bot-message table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+}
+
+.rich-editor td, .rich-editor th,
+.rule-definition td, .rule-definition th,
+.rule-points td, .rule-points th,
+.rule-examples td, .rule-examples th,
+.bot-message td, .bot-message th {
+    border: 1px solid #cbd5e1;
+    padding: 6px 10px;
+    text-align: left;
+    min-width: 32px;
+}
+
+.rich-editor table {
+    margin: 8px 0;
+}
+
+/* Chat bubbles are narrow — let a wide table scroll horizontally
+   instead of squashing/breaking the chat window layout. */
+.bot-message table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+body.dark-mode .rule-definition td, body.dark-mode .rule-definition th,
+body.dark-mode .rule-points td, body.dark-mode .rule-points th,
+body.dark-mode .rule-examples td, body.dark-mode .rule-examples th {
+    border-color: #334155;
+}
+
+/* ── SESSION EXPIRY WARNING (v2.8.0) ─────────────────────────
+   Built dynamically by inactivity-timer.js, shared by both the
+   student dashboard and the admin panel. */
+.session-warning-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 5000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.session-warning-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.session-warning-box h3 {
+    margin-bottom: 10px;
+    color: #1e293b;
+}
+
+.session-warning-box p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.session-warning-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.session-warning-actions button {
+    flex: 1;
+}

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Rule Keeper - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="container">
+        <div class="login-wrapper">
+            <h1 class="app-title">📚 UPSC RULE KEEPER</h1>
+
+            <!-- ── LOGIN CARD (student ⇄ admin flip — unchanged) ──── -->
+            <div class="flip-card" id="flip-card-wrap">
+                <div class="flip-card-inner" id="flip-card-inner">
+
+                    <!-- FRONT: Student -->
+                    <div class="flip-card-front glass-card">
+                        <div id="student-tab">
+                            <h2 class="login-face-heading">🎓 Student Login</h2>
+                            <form id="student-login-form" autocomplete="off">
+
+                                <!-- Signup-only: Full Name -->
+                                <div class="input-group" id="signup-name-group" style="display:none;">
+                                    <label>Full Name</label>
+                                    <input type="text" id="signup-name" placeholder="Enter your full name" autocomplete="off">
+                                </div>
+
+                                <!-- Email -->
+                                <div class="input-group">
+                                    <label>Email</label>
+                                    <input type="email" id="student-email" placeholder="your@email.com" autocomplete="off">
+                                </div>
+
+                                <!-- Password -->
+                                <div class="input-group">
+                                    <label>Password</label>
+                                    <div class="password-wrapper">
+                                        <input type="password" id="student-password" placeholder="Enter password" autocomplete="new-password">
+                                        <button type="button" class="toggle-password" data-target="student-password" aria-label="Show password"></button>
+                                    </div>
+
+                                    <!-- Password strength — shown only in signup mode -->
+                                    <div class="password-strength" id="student-strength-block">
+                                        <div class="strength-bar"><div class="strength-fill" id="student-strength-fill"></div></div>
+                                        <div class="strength-text" id="student-strength-text"></div>
+                                        <ul class="password-requirements" id="student-requirements">
+                                            <li id="req-length">At least 8 characters</li>
+                                            <li id="req-upper">At least 1 uppercase letter (A-Z)</li>
+                                            <li id="req-lower">At least 1 lowercase letter (a-z)</li>
+                                            <li id="req-number">At least 1 number (0-9)</li>
+                                            <li id="req-special">At least 1 special character (!@#$...)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Confirm Password — shown only when password criteria met -->
+                                <div class="input-group" id="confirm-password-group" style="display:none;">
+                                    <label>Confirm Password</label>
+                                    <div class="password-wrapper">
+                                        <input type="password" id="student-confirm-password" placeholder="Re-enter password" autocomplete="new-password">
+                                        <button type="button" class="toggle-password" data-target="student-confirm-password" aria-label="Show password"></button>
+                                    </div>
+                                    <div id="confirm-password-msg" style="font-size:12px; margin-top:5px;"></div>
+                                </div>
+
+                                <div class="button-group">
+                                    <button type="button" id="student-login-btn" class="btn-primary">LOGIN</button>
+                                    <button type="button" id="student-signup-btn" class="btn-secondary">CREATE ACCOUNT</button>
+                                </div>
+                                <div class="forgot-password">
+                                    <a href="reset-password.html" class="forgot-password-link">Forgot Password?</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── RESET PASSWORD CARD ──────────────────────────────
+                 Plain sibling of the login card above — NOT nested
+                 inside a second 3D flip context (see style.css note on
+                 why the earlier nested-preserve-3d version was
+                 unreliable, especially on mobile). Hidden by default;
+                 JS below toggles which one is visible. -->
+            <div class="glass-card reset-card" id="reset-card">
+                <h3 style="text-align:center; margin-bottom:10px;">🔐 Reset Password</h3>
+                <p style="text-align:center; color:#64748b; margin-bottom:20px; font-size:14px;">
+                    Enter your email to receive a password reset link.
+                </p>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="reset-email-inline" placeholder="your@email.com" autocomplete="off">
+                </div>
+                <button type="button" id="send-reset-btn-inline" class="btn-primary" style="width:100%;">SEND RESET LINK</button>
+                <div class="switch-side">
+                    <button type="button" id="back-to-login-btn" class="switch-side-btn">← Back to Login</button>
+                </div>
+                <div id="reset-message-inline" class="message"></div>
+            </div>
+
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { auth, db } from "./firebase-config.js";
+
+        // SECURITY FIX: push a state so back button can't bypass login
+        history.pushState(null, "", window.location.href);
+        window.addEventListener("popstate", () => {
+            history.pushState(null, "", window.location.href);
+        });
+
+        // If already logged in, redirect appropriately
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const settingsRef = doc(db, "settings", "admin");
+                    const settingsDoc = await getDoc(settingsRef);
+                    const adminEmail = settingsDoc.exists() ? settingsDoc.data().adminEmail : null;
+
+                    if (user.email === adminEmail) {
+                        window.location.replace("admin.html");
+                        return;
+                    }
+
+                    const userRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userRef);
+
+                    if (userDoc.exists()) {
+                        const disabledDoc = await getDoc(doc(db, "disabledUsers", user.uid));
+                        if (disabledDoc.exists()) {
+                            await auth.signOut();
+                            document.getElementById("message").innerHTML = "🚫 Your account has been disabled. Please contact your admin.";
+                            document.getElementById("message").style.color = "red";
+                            return;
+                        }
+                        window.location.replace("dashboard.html");
+                    } else {
+                        const pendingRef = doc(db, "pendingUsers", user.uid);
+                        const pendingDoc = await getDoc(pendingRef);
+                        await auth.signOut();
+                        if (pendingDoc.exists()) {
+                            document.getElementById("message").innerHTML = "⏳ Your account is pending admin approval.";
+                            document.getElementById("message").style.color = "orange";
+                        } else {
+                            document.getElementById("message").innerHTML = "❌ Account not found. Please sign up.";
+                            document.getElementById("message").style.color = "red";
+                        }
+                    }
+                } catch (error) {
+                    console.error("Auth state error:", error);
+                }
+            }
+        });
+    </script>
+
+    <!-- Reset-password send logic (inline flip face) -->
+    <script type="module">
+        import { auth } from "./firebase-config.js";
+        import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        document.getElementById("send-reset-btn-inline").addEventListener("click", async () => {
+            const email = document.getElementById("reset-email-inline").value.trim();
+            const messageDiv = document.getElementById("reset-message-inline");
+
+            if (!email) {
+                messageDiv.innerHTML = "❌ Please enter your email.";
+                messageDiv.style.color = "red";
+                return;
+            }
+
+            const btn = document.getElementById("send-reset-btn-inline");
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                messageDiv.innerHTML = "✅ Reset link sent! Check your inbox (and spam folder).";
+                messageDiv.style.color = "#2ed573";
+            } catch (error) {
+                // Generic message to avoid revealing whether email is registered
+                messageDiv.innerHTML = "📧 If this email is registered, you will receive a reset link shortly.";
+                messageDiv.style.color = "orange";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "SEND RESET LINK";
+            }
+        });
+    </script>
+
+    <script type="module" src="auth.js"></script>
+
+    <script>
+        const messageDivFlip = document.getElementById("message");
+
+        // ── FORGOT PASSWORD ⇄ LOGIN CARD TOGGLE ──────────────────
+        const loginCardWrap       = document.getElementById("flip-card-wrap");
+        const resetCard           = document.getElementById("reset-card");
+        const resetMessageInline  = document.getElementById("reset-message-inline");
+
+        function openResetFlip(e) {
+            if (e) e.preventDefault(); // don't navigate to reset-password.html
+            loginCardWrap.style.display = "none";
+            loginCardWrap.classList.remove("visible");
+            resetCard.classList.add("visible");
+            resetMessageInline.innerHTML = "";
+            document.getElementById("reset-email-inline").value = "";
+        }
+
+        function closeResetFlip() {
+            resetCard.classList.remove("visible");
+            loginCardWrap.style.display = "";
+            // Re-trigger the flip-in animation on the login card by
+            // removing then re-adding the class on the next frame.
+            requestAnimationFrame(() => loginCardWrap.classList.add("visible"));
+        }
+
+        document.querySelectorAll(".forgot-password-link").forEach(link => {
+            link.addEventListener("click", openResetFlip);
+        });
+        document.getElementById("back-to-login-btn").addEventListener("click", closeResetFlip);
+
+        // ── PASSWORD SHOW/HIDE (professional SVG icon toggle) ───
+        const EYE_OPEN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-sm"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const EYE_OFF_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-sm"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        document.querySelectorAll(".toggle-password").forEach(btn => {
+            btn.innerHTML = EYE_OPEN_SVG; // initial state: password hidden, icon = "show"
+            btn.addEventListener("click", () => {
+                const input = document.getElementById(btn.dataset.target);
+                if (input.type === "password") {
+                    input.type = "text";
+                    btn.innerHTML = EYE_OFF_SVG;
+                    btn.setAttribute("aria-label", "Hide password");
+                } else {
+                    input.type = "password";
+                    btn.innerHTML = EYE_OPEN_SVG;
+                    btn.setAttribute("aria-label", "Show password");
+                }
+            });
+        });
+
+        // ── PASSWORD STRENGTH METER ─────────────────────────────
+        const passwordInput = document.getElementById("student-password");
+        const strengthBlock = document.getElementById("student-strength-block");
+        const strengthFill = document.getElementById("student-strength-fill");
+        const strengthText = document.getElementById("student-strength-text");
+        const confirmGroup = document.getElementById("confirm-password-group");
+        const confirmInput = document.getElementById("student-confirm-password");
+        const confirmMsg = document.getElementById("confirm-password-msg");
+
+        const reqLength  = document.getElementById("req-length");
+        const reqUpper   = document.getElementById("req-upper");
+        const reqLower   = document.getElementById("req-lower");
+        const reqNumber  = document.getElementById("req-number");
+        const reqSpecial = document.getElementById("req-special");
+
+        let passwordCriteriaMet = false;
+
+        function checkStrength(password) {
+            const hasLength  = password.length >= 8;
+            const hasUpper   = /[A-Z]/.test(password);
+            const hasLower   = /[a-z]/.test(password);
+            const hasNumber  = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+            // Update requirement indicators
+            reqLength.classList.toggle("met", hasLength);
+            reqUpper.classList.toggle("met", hasUpper);
+            reqLower.classList.toggle("met", hasLower);
+            reqNumber.classList.toggle("met", hasNumber);
+            reqSpecial.classList.toggle("met", hasSpecial);
+
+            const score = [hasLength, hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+
+            // Remove old classes
+            strengthFill.className = "strength-fill";
+            strengthText.className = "strength-text";
+
+            if (password.length === 0) {
+                strengthFill.style.width = "0";
+                strengthText.textContent = "";
+                return false;
+            }
+
+            if (score <= 2) {
+                strengthFill.classList.add("weak");
+                strengthText.classList.add("weak");
+                strengthText.textContent = "Weak password";
+            } else if (score <= 4) {
+                strengthFill.classList.add("medium");
+                strengthText.classList.add("medium");
+                strengthText.textContent = "Medium password";
+            } else {
+                strengthFill.classList.add("strong");
+                strengthText.classList.add("strong");
+                strengthText.textContent = "Strong password ✓";
+            }
+
+            // All 5 criteria must be met
+            return hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
+        }
+
+        passwordInput.addEventListener("input", () => {
+            // Only show strength in signup mode
+            const isSignupMode = document.getElementById("signup-name-group").style.display !== "none";
+            if (!isSignupMode) return;
+
+            strengthBlock.style.display = "block";
+            passwordCriteriaMet = checkStrength(passwordInput.value);
+
+            // Show confirm password only when all criteria are met
+            if (passwordCriteriaMet) {
+                confirmGroup.style.display = "block";
+            } else {
+                confirmGroup.style.display = "none";
+                confirmInput.value = "";
+                confirmMsg.textContent = "";
+            }
+        });
+
+        // Check confirm password match
+        confirmInput.addEventListener("input", () => {
+            if (confirmInput.value === "") {
+                confirmMsg.textContent = "";
+                return;
+            }
+            if (confirmInput.value === passwordInput.value) {
+                confirmMsg.textContent = "✓ Passwords match";
+                confirmMsg.style.color = "#2ed573";
+            } else {
+                confirmMsg.textContent = "✗ Passwords do not match";
+                confirmMsg.style.color = "#ff4757";
+            }
+        });
+
+        // ── ENTER KEY SUBMITS THE VISIBLE ACTION ─────────────────
+        // v2.6.1 fix: the previous version listened for the form's
+        // "submit" event, assuming Enter would trigger it — but per the
+        // HTML spec, implicit form submission on Enter only happens if
+        // the form has an actual type="submit" button. Every button
+        // here is type="button" (needed since they branch on internal
+        // state, e.g. the student button does login OR signup
+        // depending on current mode), so there IS no submit button —
+        // meaning the browser never fires a submit event at all, and
+        // that listener was never going to run. Real fix: listen for
+        // Enter directly via keydown, delegated on the form so it
+        // covers every input inside it without a listener per field.
+        document.getElementById("student-login-form").addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && e.target.tagName === "INPUT") {
+                e.preventDefault();
+                document.getElementById("student-login-btn").click();
+            }
+        });
+
+        // The reset-password field isn't inside a <form> at all, so it
+        // needs its own direct Enter listener (this one was already
+        // correct — keydown-based, not submit-based).
+        document.getElementById("reset-email-inline").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("send-reset-btn-inline").click();
+            }
+        });
+    </script>
+</body>
+</html>

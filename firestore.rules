@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ── SETTINGS ──────────────────────────────────────────────
+    // Only exists on the PRIMARY project — inert/unused on a chained
+    // project (the app never creates this collection there).
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── PENDING USERS — PRIMARY project only ─────────────────────
+    match /pendingUsers/{userId} {
+      allow create: if request.auth != null && 
+        request.auth.uid == userId;
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.email == "admin.alphaacademy@gmail.com");
+      allow delete: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── USERS (APPROVED STUDENTS) — PRIMARY project only ─────────
+    match /users/{userId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.email == "admin.alphaacademy@gmail.com");
+      allow write: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.email == "admin.alphaacademy@gmail.com");
+    }
+    // ── DELETED USERS (RECYCLE BIN) — PRIMARY project only ───────
+    match /deletedUsers/{userId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── CATEGORIES — PRIMARY project only ─────────────────────────
+    match /categories/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── FIREBASE CHAIN — PRIMARY project only ─────────────────────
+    match /firebaseChain/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── DISABLED USERS — PRIMARY project only ────────────────────
+    // Existence of a doc here = that student's account is disabled.
+    // Student can read their own status (checked at login and
+    // watched live while using the app); only admin can add/remove
+    // one, via the Enable/Disable button.
+    match /disabledUsers/{userId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.email == "admin.alphaacademy@gmail.com");
+      allow write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+    // ── RULES (STUDY MATERIAL) — exists on PRIMARY and every
+    // CHAINED project. Paste this exact file, unchanged, into every
+    // chained project's Firestore Console too.
+    //
+    // As of the app's v2.5.0 fix, the admin is automatically signed
+    // into EVERY chained project's own Firebase Auth too (using the
+    // same email/password as primary) — both at login time and
+    // immediately when a new project is added from Settings. That
+    // means request.auth genuinely IS populated on chained projects
+    // now, so this exact write rule works correctly everywhere, not
+    // just on primary.
+    //
+    // Read stays open (not gated behind request.auth): students are
+    // never signed into chained projects (only the admin is, for
+    // writes) — and there's no confidentiality need here anyway,
+    // since this is material every approved student already sees
+    // through the app once merged across the chain.
+    match /rules/{ruleId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email == "admin.alphaacademy@gmail.com";
+    }
+  }
+}

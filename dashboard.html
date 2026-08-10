@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - UPSC Rule Keeper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img
+            src="splash.jpeg"
+            alt="UPSC Rule Keeper"
+            style="max-width:200px; width:80%; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2);"
+            onerror="this.style.display='none'"
+        >
+        <p style="color:white; margin-top:20px; font-size:16px; opacity:0.9;">Designed by Md Ehtesham</p>
+        <div style="margin-top:20px; width:50px; height:50px; border:3px solid white; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+    </div>
+
+    <!-- Hamburger button (mobile only) -->
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">☰</button>
+
+    <!-- Sidebar overlay (mobile tap-outside-to-close) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- ── ICON TEMPLATES ─────────────────────────────────────
+         Inert <template> tags holding the SVG markup for the
+         dark/light mode toggle. dashboard.js clones whichever one
+         applies into #dark-mode-toggle — keeps the icon markup out
+         of JS strings and easy to swap/restyle here in one place. -->
+    <template id="icon-moon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </template>
+    <template id="icon-sun">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </template>
+
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="profile-section">
+                <div class="avatar" id="avatar">RS</div>
+                <h3 id="student-name">Loading...</h3>
+                <p id="student-email-sidebar">email@example.com</p>
+                <div class="student-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Batch:</span>
+                        <span id="student-batch">UPSC / WBCS / SSC - CGL</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Joined:</span>
+                        <span id="student-joined">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <span class="auto-logout-timer" id="student-auto-logout-timer"></span>
+            <button id="logout-btn-sidebar" class="logout-btn">🚪 LOGOUT</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>📚 UPSC RULE KEEPER</h1>
+                <div class="header-actions">
+                    <label class="multi-expand-toggle" title="When on, multiple rule cards can stay open at once">
+                        <input type="checkbox" id="multi-expand-toggle">
+                        <span class="multi-expand-slider"></span>
+                        <span class="multi-expand-label">Multi-open</span>
+                    </label>
+                    <button id="dark-mode-toggle" class="icon-btn" title="Toggle dark mode"></button>
+                    <button id="voice-search-btn" class="icon-btn" title="Voice search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
+                    <select id="language-select" class="language-select" style="display:none;">
+                        <option value="en">English</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="ur">اردو</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- Search & Filter -->
+            <div class="search-section">
+                <input type="text" id="search-input" placeholder="Search rules by name or keyword..." autocomplete="off">
+                <!-- Populated dynamically by categories.js (defaults + admin-added custom categories) -->
+                <select id="category-filter">
+                    <option value="all">All Categories</option>
+                </select>
+                <!-- Chapter filter — populated dynamically -->
+                <select id="chapter-filter">
+                    <option value="all">All Chapters</option>
+                </select>
+                <!-- Sort order — lets a student find a recently-taught rule
+                     even if they've forgotten its name/keyword, by sorting
+                     newest-first using the admin-set Rule Date. -->
+                <select id="sort-select">
+                    <option value="alpha">Sort: Alphabetical (A–Z)</option>
+                    <option value="date-desc">Sort: Date — Newest First</option>
+                    <option value="date-asc">Sort: Date — Oldest First</option>
+                </select>
+            </div>
+
+            <!-- Tabs -->
+            <div class="content-tabs">
+                <button class="tab-btn active" data-tab="rules">📚 ALL RULES</button>
+                <button class="tab-btn" data-tab="bookmarks">⭐ BOOKMARKS</button>
+                <button class="tab-btn" data-tab="recent">🔍 RECENT SEARCHES</button>
+            </div>
+
+            <!-- Rules Container -->
+            <div id="rules-container" class="rules-container">
+                <p>⏳ Loading rules...</p>
+            </div>
+        </main>
+
+        <!-- Floating Chatbot -->
+        <button id="chatbot-toggle" class="chatbot-toggle">💬</button>
+        <div id="chatbot-window" class="chatbot-window" style="display:none;">
+            <div class="chatbot-header">
+                <span>🤖 ASK ME</span>
+                <button id="chatbot-close">✕</button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="bot-message">Hi! Ask me about any rule — try "what is the rule of help?" or "first rule of tenses". 🌐 You can also switch your language above and ask me to translate any definition or example for better understanding.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off">
+                <button id="chat-voice-btn" class="voice-chat-btn" title="Voice input">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-svg-sm"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </button>
+                <button id="chat-send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Only dashboard.js needed — it imports voice.js, translation.js etc internally -->
+    <script type="module" src="dashboard.js"></script>
+
+    <script>
+        // ── HAMBURGER MENU ──────────────────────────────────────
+        const hamburgerBtn   = document.getElementById("hamburger-btn");
+        const sidebar        = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+        function openSidebar() {
+            sidebar.classList.add("open");
+            sidebarOverlay.classList.add("active");
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove("open");
+            sidebarOverlay.classList.remove("active");
+        }
+
+        hamburgerBtn.addEventListener("click", openSidebar);
+        sidebarOverlay.addEventListener("click", closeSidebar);
+
+        // Close sidebar when logout is clicked (mobile)
+        document.getElementById("logout-btn-sidebar").addEventListener("click", closeSidebar);
+    </script>
+</body>
+</html>
